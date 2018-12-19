@@ -1,5 +1,5 @@
 # Основные библиотеки
-import random
+import random 1
 import time
 import os
 import re
