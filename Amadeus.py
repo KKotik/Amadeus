@@ -6,20 +6,25 @@ import re
 
 # Модуль авторизации
 vk_token = 'aaf456f32ee666421b248976d5c1e2951584f6826cbbbe490abc829ade280c670e6cde739f4bd9e41bcfc'
-tg_token = '648054304:AAEhQjnMaxQ7QyAsNWMNW_yggY4YQnJYcQg'
 
 # Модуль API вконтакте
 import vk_requests
 
-vk = vk_requests.create_api(app_id=6759791, service_token=vk_token, scope=['offline', 'messages'], interactive=True)
+vk = vk_requests.create_api(service_token=vk_token, scope=['offline', 'messages'], interactive=True)
 id = 517961285
 
 # Датабаза на SQLite 3
 import sqlite3
-
 cwd = os.getcwd()
-connection = sqlite3.connect(cwd + '/.data/data.db')
-cursor = connection.cursor()
+
+connection1 = sqlite3.connect(cwd + '/.data/data.db')
+cursor_data = connection1.cursor()
+
+connection2 = sqlite3.connect(cwd + '/.data/user.db')
+cursor_user = connection2.cursor()
+
+connection3 = sqlite3.connect(cwd + '/.data/post.db')
+cursor_post = connection3.cursor()
 
 # Модуль классов
 
@@ -43,9 +48,17 @@ class switch(object):
 
 # Модуль функций
 
+def reposting(group, post):
+    wall = [group, post]
+    attachments = ['wall{}_{}'.format(wall[0], wall[1])]
+    vk.messages.send(peer_id=2000000002, attachment=attachments)
+    cursor_post.execute('UPDATE reposts SET post_id = ? WHERE group_id = ?', [post, group])
+    connection3.commit()
+    time.sleep(1)
+
 def register(user):
-    cursor.execute('SELECT * FROM users WHERE vk_id = ?', [user])
-    if not cursor.fetchall():
+    cursor_user.execute('SELECT * FROM users WHERE vk_id = ?', [user])
+    if not cursor_user.fetchall():
         first_name = vk.users.get(user_id=user)[0]['first_name']
         last_name = vk.users.get(user_id=user)[0]['last_name']
         execute('users', "" + str(user) + ", '" + first_name + "', '" + last_name + "'")
@@ -53,33 +66,33 @@ def register(user):
 def response(type, peer, id):
     chance = random.randint(1, 99)
     if 1  <= chance <= 50:
-        cursor.execute('SELECT arg_1 FROM output WHERE data_id = ?', [id])
-        data = cursor.fetchone()[0].split('$')
+        cursor_data.execute('SELECT arg_1 FROM output WHERE data_id = ?', [id])
+        data = cursor_data.fetchone()[0].split('$')
         send(type, peer, data[random.randint(0, len(data)-1)])
     if 51 <= chance <= 80:
-        cursor.execute('SELECT arg_2 FROM output WHERE data_id = ?', [id])
-        data = cursor.fetchone()[0].split('$')
+        cursor_data.execute('SELECT arg_2 FROM output WHERE data_id = ?', [id])
+        data = cursor_data.fetchone()[0].split('$')
         send(type, peer, data[random.randint(0, len(data)-1)])
     if 81 <= chance <= 95:
-        cursor.execute('SELECT arg_3 FROM output WHERE data_id = ?', [id])
-        data = cursor.fetchone()[0].split('$')
+        cursor_data.execute('SELECT arg_3 FROM output WHERE data_id = ?', [id])
+        data = cursor_data.fetchone()[0].split('$')
         send(type, peer, data[random.randint(0, len(data)-1)])
     if 96 <= chance <= 99:
-        cursor.execute('SELECT arg_4 FROM output WHERE data_id = ?', [id])
-        data = cursor.fetchone()[0].split('$')
+        cursor_data.execute('SELECT arg_4 FROM output WHERE data_id = ?', [id])
+        data = cursor_data.fetchone()[0].split('$')
         send(type, peer, data[random.randint(0, len(data)-1)])
 
 def checking(word, id):
-    cursor.execute('SELECT data FROM input WHERE data_id = ?', [id])
-    data = cursor.fetchone()[0].split()
+    cursor_data.execute('SELECT data FROM input WHERE data_id = ?', [id])
+    data = cursor_data.fetchone()[0].split()
     if not word in data:
         return False
     else:
         return True
 
 def execute(database, command):
-    cursor.execute("INSERT INTO " + database + " VALUES (" + command + ")")
-    connection.commit()
+    cursor_data.execute("INSERT INTO " + database + " VALUES (" + command + ")")
+    connection2.commit()
 
 def complete(type, peer):
     if type == 'chat':
@@ -98,15 +111,21 @@ def send(type, peer, text):
 def command_repost(group):
     posts = vk.wall.get(owner_id=group, offset=1)
     post = str(posts['items'][0]['id'])
-    cursor.execute('SELECT post_id FROM repost WHERE group_id = ?', [group])
-    last = cursor.fetchone()[0]
-    if not last == post:
-        wall = [group, post]
-        attachments = ['wall{}_{}'.format(wall[0], wall[1])]
-        vk.messages.send(peer_id=2000000001, attachment=attachments)
-        cursor.execute('UPDATE repost SET post_id = ? WHERE group_id = ?', [post, group])
-        connection.commit()
-        time.sleep(1)
+    text = str(posts['items'][0]['text']).split()
+    cursor_post.execute('SELECT post_id, tag_id FROM reposts WHERE group_id = ?', [group])
+    last = cursor_post.fetchone()
+    index = 0
+    if not last[0] == post:
+        if last[1] == '0':
+            last[1].split()
+            if last[1][index in range(0, len(last[1]) - 1)] in text:
+                reposting(group, post)
+            else:
+                pass
+        else:
+            reposting(group, post)
+    else:
+        pass
 
 def command_chance(type, peer, msg):
     msg[len(msg) - 1] = re.sub("[.!?]", '', msg[len(msg) - 1])
@@ -215,8 +234,8 @@ def command_chance(type, peer, msg):
     string = ' '.join(msg)
     chance = random.randint(0, 100)
     number = random.randint(1, 4)
-    cursor.execute('SELECT arg_' + str(number) + ' FROM output WHERE data_id = ?', ['101'])
-    data = cursor.fetchone()
+    cursor_data.execute('SELECT arg_' + str(number) + ' FROM output WHERE data_id = ?', ['101'])
+    data = cursor_data.fetchone()
     send(type, peer, str(data[0]) + ' ' + string + ' равна ' + str(chance) + '%.')
 
 # Счетчики
@@ -243,7 +262,7 @@ while True:
                         else:
                             command_chance(msg_type, msg_peer, message)
                     if len(message) > 2:
-                        print('none')
+                        complete(msg_type, msg_peer)
                 else:
                     response(msg_type, msg_peer, '001')
             if checking(message[0], '002'):
@@ -254,5 +273,4 @@ while True:
             command_repost('-9273458')
             count = 0
         count += 1
-        complete(msg_type, msg_peer)
     time.sleep(1)
