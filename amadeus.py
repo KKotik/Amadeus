@@ -8,11 +8,12 @@ import re
 vk_token = 'aaf456f32ee666421b248976d5c1e2951584f6826cbbbe490abc829ade280c670e6cde739f4bd9e41bcfc'
 tg_token = '648054304:AAEhQjnMaxQ7QyAsNWMNW_yggY4YQnJYcQg'
 
-# Модуль API вконтакте!!
+# Модуль API вконтакте
 import vk_requests
 
 vk = vk_requests.create_api(app_id=6759791, service_token=vk_token, scope=['offline', 'messages'], interactive=True)
 id = 517961285
+print('Hello world')
 
 # Датабаза на SQLite 3
 import sqlite3
