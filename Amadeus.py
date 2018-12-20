@@ -51,7 +51,7 @@ class switch(object):
 def reposting(group, post):
     wall = [group, post]
     attachments = ['wall{}_{}'.format(wall[0], wall[1])]
-    vk.messages.send(peer_id=2000000002, attachment=attachments)
+    vk.messages.send(peer_id=2000000001, attachment=attachments)
     cursor_post.execute('UPDATE reposts SET post_id = ? WHERE group_id = ?', [post, group])
     connection3.commit()
     time.sleep(1)
@@ -91,7 +91,7 @@ def checking(word, id):
         return True
 
 def execute(database, command):
-    cursor_data.execute("INSERT INTO " + database + " VALUES (" + command + ")")
+    cursor_user.execute("INSERT INTO " + database + " VALUES (" + command + ")")
     connection2.commit()
 
 def complete(type, peer):
@@ -114,6 +114,7 @@ def command_repost(group):
     text = str(posts['items'][0]['text'])
     cursor_post.execute('SELECT post_id, tag_id FROM reposts WHERE group_id = ?', [group])
     last = cursor_post.fetchone()
+    print(last[0], ' ', post)
     if not last[0] == post:
         if not last[1] == '0':
             convert = last[1].split()
@@ -236,7 +237,8 @@ def command_chance(type, peer, msg):
 
 # Счетчики
 
-count = 0
+count1 = 0
+count2 = 0
 
 # Главный модуль программы
 while True:
@@ -263,10 +265,16 @@ while True:
                     response(msg_type, msg_peer, '001')
             if checking(message[0], '002'):
                 response(msg_type, msg_peer, '002')
-        if count == 30:
-            command_repost('-167609719')
-            command_repost('-79997904')
-            command_repost('-9273458')
-            count = 0
-        count += 1
+        if count1 == 10:
+            if count2 == 1:
+                command_repost('-167609719')
+                count2 += 1
+            if count2 == 2:
+                command_repost('-79997904')
+                count2 += 1
+            if count2 == 3:
+                command_repost('-9273458')
+                count2 -= 2
+            count1 = 0
+        count1 += 1
     time.sleep(1)
