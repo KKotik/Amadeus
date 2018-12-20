@@ -51,7 +51,7 @@ class switch(object):
 def reposting(group, post):
     wall = [group, post]
     attachments = ['wall{}_{}'.format(wall[0], wall[1])]
-    vk.messages.send(peer_id=2000000002, attachment=attachments)
+    vk.messages.send(peer_id=2000000001, attachment=attachments)
     cursor_post.execute('UPDATE reposts SET post_id = ? WHERE group_id = ?', [post, group])
     connection3.commit()
     time.sleep(1)
@@ -111,16 +111,15 @@ def send(type, peer, text):
 def command_repost(group):
     posts = vk.wall.get(owner_id=group, offset=1)
     post = str(posts['items'][0]['id'])
-    text = str(posts['items'][0]['text']).split()
+    text = str(posts['items'][0]['text'])
     cursor_post.execute('SELECT post_id, tag_id FROM reposts WHERE group_id = ?', [group])
     last = cursor_post.fetchone()
-    index = 0
     if not last[0] == post:
         if not last[1] == '0':
             convert = last[1].split()
-            last[1] = convert
-            if last[1][index in range(0, len(last[1]) - 1)] in text:
-                reposting(group, post)
+            for index in range(0, len(convert) - 1):
+                if convert[index] in text:
+                    reposting(group, post)
         else:
             reposting(group, post)
 
