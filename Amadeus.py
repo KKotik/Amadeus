@@ -116,16 +116,13 @@ def command_repost(group):
     last = cursor_post.fetchone()
     index = 0
     if not last[0] == post:
-        if last[1] == '0':
-            last[1].split()
+        if not last[1] == '0':
+            convert = last[1].split()
+            last[1] = convert
             if last[1][index in range(0, len(last[1]) - 1)] in text:
                 reposting(group, post)
-            else:
-                pass
         else:
             reposting(group, post)
-    else:
-        pass
 
 def command_chance(type, peer, msg):
     msg[len(msg) - 1] = re.sub("[.!?]", '', msg[len(msg) - 1])
