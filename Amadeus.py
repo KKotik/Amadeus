@@ -238,7 +238,7 @@ def command_chance(type, peer, msg):
 # Счетчики
 
 count1 = 0
-count2 = 0
+count2 = 1
 
 # Главный модуль программы
 while True:
