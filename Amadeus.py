@@ -51,7 +51,7 @@ class switch(object):
 def reposting(group, post):
     wall = [group, post]
     attachments = ['wall{}_{}'.format(wall[0], wall[1])]
-    vk.messages.send(peer_id=2000000001, attachment=attachments)
+    vk.messages.send(peer_id=2000000002, attachment=attachments)
     cursor_post.execute('UPDATE reposts SET post_id = ? WHERE group_id = ?', [post, group])
     connection3.commit()
     time.sleep(1)
